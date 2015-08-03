@@ -31,7 +31,7 @@
     <div><span>Highest Score: </span><span id="spanHighestScore"></span></div>
     <div><span>Hero Y: </span><span id="spanHeroY"></span></div>
     <div><span>Value of Doing Nothing: </span><span id="spanValueNothing"></span> <span>Value of Jumping: </span><span id="spanValueJumping"></span></div>
-    <div style="margin-top:1px;"><span>Hero Interval in <i>ms</i>: <input id="txtFH" style="width: 30px;" value="5" /></span><span> Obstacles Interval in <i>ms</i>: <input id="txtFO" style="width: 30px;" value="10" /></span> <button onclick="changeFrequency()">Change</button></div>
+    <div style="margin-top:1px;"><span>Jump Height: <input id="txtJH" style="width: 30px;" value="150" /></span> <span>Jump Speed: <input id="txtJS" style="width: 20px;" value="2" /></span> <span> Obstacles Speed: <input id="txtOS" style="width: 20px;" value="5" /></span> <button onclick="changeFrequency()">Change</button></div>
     
     <script>
         var width = 900; var height = 450; //Canvas width and height
@@ -42,7 +42,8 @@
         var hero_x = 450; var hero_y = 0; var direction = 'null'; var score = 0; var score2 = 0; var flag = [1, 1]; var highestscore = 0;
         var layer_defs; var net; var trainer; var random = 1; //Neural network
         var inputs; var outputs; //Table
-        var training = false; var trainingNN = false; var trainingTable = false; var agent = true; var frequency_obs = 10; var frequency_hero = 5; var obs_interval; var jump_interval;
+        var training = false; var trainingNN = false; var trainingTable = false; var agent = true; 
+		var frequency_obs = 10; var frequency_hero = 5; var obs_interval; var jump_interval; var jump_height = 100; var jump_speed = 2; var obs_speed = 5;
 
         function load() {
             setupNN();
@@ -59,10 +60,9 @@
         });
 
         function changeFrequency() {
-            frequency_obs = $("#txtFO").val();
-            frequency_hero = $("#txtFH").val();
-            clearInterval(obs_interval);
-            obs_interval = setInterval(start, frequency_obs);
+            obs_speed = $("#txtOS").val();
+            jump_height = $("#txtJH").val();
+            jump_speed = parseInt($("#txtJS").val());
         }
 
         function changeAgent() {
@@ -104,7 +104,7 @@
 
         function move() {
             for (var i = 0; i < n; i++) {
-                x[i] -= 5;
+                x[i] -= obs_speed;
                 if (x[i] < 0)
                     x[i] = width;
             }
@@ -112,11 +112,11 @@
 
         function drawJump() {
             if (direction == 'up')
-                hero_y -= 2;
+                hero_y -= jump_speed;
             else if (direction == 'down')
-                hero_y += 2;
+                hero_y += jump_speed;
 
-            if (hero_y <= -150) {
+            if (hero_y <= -jump_height) {
                 direction = 'down';
             }
 
@@ -136,7 +136,7 @@
 
         function updateScore() {
             $("#spanDistance").text(getDistance());
-            for (var i = 0; i < 2; i++) {
+            for (var i = 0; i < n; i++) {
                 if (Math.abs(x[i] - hero_x) <= 50) {
                     if (flag[i] == 1) {
                         if (hero_y >= -25) {
@@ -161,8 +161,8 @@
         }
 
         function getDistance() {
-            var min = 1000; var index = 0;
-            for (var i = 0; i < 2; i++) {
+            var min = width; var index = 0;
+            for (var i = 0; i < n; i++) {
                 if (x[i] - hero_x - 50 >= 0 && x[i] - hero_x - 50 < min) {
                     min = x[i] - hero_x - 50; index = i;
                 }
@@ -227,9 +227,9 @@
             var X = 0;
             var reward = 0;
             if (new_score > old_score)
-                reward = 1;
+                reward = 2;
             else if (new_score < old_score)
-                reward = -10;
+                reward = -1;
 
             if (reward == 0) {
                 var qvalues = [nnet(new_distance, 0), nnet(new_distance, 1)];
