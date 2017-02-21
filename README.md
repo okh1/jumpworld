@@ -1,5 +1,5 @@
 # jumpworld
-QLearning agent that learns to jump obstacles - with a table or a NN. Written in Javascript.
+QLearning agent that learns to jump obstacles - with a table, a Neural Network or a BST. Written in Typescript.
 
 [Try it LIVE](http://jumpworld.neocities.org/)
 
